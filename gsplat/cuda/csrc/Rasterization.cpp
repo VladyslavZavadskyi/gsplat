@@ -337,7 +337,7 @@ RasterizeToPixels3DGSFwdResult rasterize_to_pixels_3dgs_fwd(
     last_ids_dims.append({image_height, image_width});
     at::Tensor last_ids = at::empty(last_ids_dims, opt.dtype(at::kInt));
 
-    launch_rasterize_to_pixels_3dgs_fwd_kernel(
+    launch_rasterize_to_pixels_3dgs_fwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -429,7 +429,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> rasterize_to_pixels_3
     last_ids_dims.append({image_height, image_width});
     at::Tensor last_ids = at::empty(last_ids_dims, opt.dtype(at::kInt));
 
-    launch_rasterize_to_pixels_3dgs_fwd_kernels(
+    launch_rasterize_to_pixels_3dgs_fwd_kernels_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -538,7 +538,7 @@ RasterizeToPixels3DGSBwdResult rasterize_to_pixels_3dgs_bwd(
         v_means2d_abs = at::zeros_like(means2d);
     }
 
-    launch_rasterize_to_pixels_3dgs_bwd_kernel(
+    launch_rasterize_to_pixels_3dgs_bwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -696,7 +696,7 @@ RasterizeToPixels3DGSFwdResult rasterize_to_pixels_sparse_fwd(
     at::Tensor alphas   = at::empty({P, 1}, opt);
     at::Tensor last_ids = at::empty({P}, opt.dtype(at::kInt));
 
-    launch_rasterize_to_pixels_sparse_fwd_kernel(
+    launch_rasterize_to_pixels_sparse_fwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -802,7 +802,7 @@ RasterizeToPixels3DGSBwdResult rasterize_to_pixels_sparse_bwd(
         v_means2d_abs = at::zeros_like(means2d);
     }
 
-    launch_rasterize_to_pixels_sparse_bwd_kernel(
+    launch_rasterize_to_pixels_sparse_bwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -911,7 +911,7 @@ std::tuple<at::optional<at::Tensor>, at::Tensor, at::Tensor, at::Tensor, at::Ten
         v_means2d_abs = at::zeros_like(means2d);
     }
 
-    launch_rasterize_to_pixels_3dgs_bwd_kernels(
+    launch_rasterize_to_pixels_3dgs_bwd_kernels_shards[channel_shards::of(colors.size(-1))](
         means2d,
         conics,
         colors,
@@ -1904,7 +1904,7 @@ RasterizeToPixels2DGSFwdResult rasterize_to_pixels_2dgs_fwd(
     render_median_dims.append({image_height, image_width, 1});
     at::Tensor render_median = at::empty(render_median_dims, opt);
 
-    launch_rasterize_to_pixels_2dgs_fwd_kernel(
+    launch_rasterize_to_pixels_2dgs_fwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         ray_transforms,
         colors,
@@ -2083,7 +2083,7 @@ RasterizeToPixels2DGSBwdResult rasterize_to_pixels_2dgs_bwd(
     }
     at::Tensor v_densify = at::zeros_like(densify);
 
-    launch_rasterize_to_pixels_2dgs_bwd_kernel(
+    launch_rasterize_to_pixels_2dgs_bwd_kernel_shards[channel_shards::of(colors.size(-1))](
         means2d,
         ray_transforms,
         colors,
@@ -2706,7 +2706,7 @@ RasterizeToPixelsFromWorld3DGSFwdResult rasterize_to_pixels_from_world_3dgs_fwd(
     // --- Launch selected forward kernel -----------------------------------
     if(renderer_config == RendererConfig::MIXED_BATCH)
     {
-        launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel(
+        launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel_shards[channel_shards::of(colors.size(-1))](
             means,
             quats,
             scales,
@@ -2784,12 +2784,13 @@ RasterizeToPixelsFromWorld3DGSFwdResult rasterize_to_pixels_from_world_3dgs_fwd(
         const int32_t priming_state_init = static_cast<int32_t>(gsplat::priming::INIT_PACKED);
         at::DimVector priming_shape(batch_dims);
         priming_shape.append({C, image_height, image_width});
-        priming_state          = at::full(priming_shape, priming_state_init, opt.dtype(at::kInt));
+        priming_state           = at::full(priming_shape, priming_state_init, opt.dtype(at::kInt));
         // Round-major launch permutation for the ParallelBatch partials and
         // batch-replay kernels. The persisted state remains tile-major; only
         // the order in which CTAs are issued changes.
-        at::Tensor bid_to_slot = compute_bid_to_slot(batches_per_tile, batch_offsets, total_batches, opt);
-        launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel(
+        at::Tensor bid_to_slot  = compute_bid_to_slot(batches_per_tile, batch_offsets, total_batches, opt);
+        const int channel_shard = channel_shards::of(colors.size(-1));
+        launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel_shards[channel_shard](
             means,
             quats,
             scales,
@@ -3030,7 +3031,8 @@ namespace
             = rays.has_value() ? at::optional<at::Tensor>(at::zeros_like(rays.value())) : at::optional<at::Tensor>();
 
         // --- Launch batch-parallel backward kernel ------------------------
-        launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel(
+        const int channel_shard = channel_shards::of(colors.size(-1));
+        launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel_shards[channel_shard](
             means,
             quats,
             scales,

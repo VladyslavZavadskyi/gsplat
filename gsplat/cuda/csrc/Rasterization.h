@@ -25,6 +25,7 @@
 
 #include "Cameras.h"
 #include "Common.h"
+#include "ChannelShards.h"
 #include "Config.h"
 #include "Lidars.h"
 #include "ExternalDistortion.h"
@@ -99,7 +100,7 @@ RasterizeToPixels2DGSResult rasterize_to_pixels_2dgs(
 // rasterize_to_pixels_3dgs
 /////////////////////////////////////////////////
 
-void launch_rasterize_to_pixels_3dgs_fwd_kernel(
+void launch_rasterize_to_pixels_3dgs_fwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -119,8 +120,9 @@ void launch_rasterize_to_pixels_3dgs_fwd_kernel(
     at::Tensor alphas,  // [..., image_height, image_width]
     at::Tensor last_ids // [..., image_height, image_width]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_3dgs_fwd_kernel);
 
-void launch_rasterize_to_pixels_3dgs_fwd_kernels(
+void launch_rasterize_to_pixels_3dgs_fwd_kernels_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -140,8 +142,9 @@ void launch_rasterize_to_pixels_3dgs_fwd_kernels(
     at::Tensor alphas,  // [..., image_height, image_width]
     at::Tensor last_ids // [..., image_height, image_width]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_3dgs_fwd_kernels);
 
-void launch_rasterize_to_pixels_3dgs_bwd_kernel(
+void launch_rasterize_to_pixels_3dgs_bwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -169,8 +172,9 @@ void launch_rasterize_to_pixels_3dgs_bwd_kernel(
     at::Tensor v_colors,                    // [..., N, 3] or [nnz, 3]
     at::Tensor v_opacities                  // [..., N] or [nnz]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_3dgs_bwd_kernel);
 
-void launch_rasterize_to_pixels_3dgs_bwd_kernels(
+void launch_rasterize_to_pixels_3dgs_bwd_kernels_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -198,6 +202,7 @@ void launch_rasterize_to_pixels_3dgs_bwd_kernels(
     at::Tensor v_colors,                    // [..., N, 3] or [nnz, 3]
     at::Tensor v_opacities                  // [..., N] or [nnz]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_3dgs_bwd_kernels);
 
 /////////////////////////////////////////////////
 // rasterize_to_pixels_sparse
@@ -210,7 +215,7 @@ void launch_rasterize_to_pixels_3dgs_bwd_kernels(
 // pixel_map) and the intersections from intersect_tile_sparse (tile_offsets /
 // flatten_ids).
 
-void launch_rasterize_to_pixels_sparse_fwd_kernel(
+void launch_rasterize_to_pixels_sparse_fwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -236,8 +241,9 @@ void launch_rasterize_to_pixels_sparse_fwd_kernel(
     at::Tensor alphas,  // [P, 1]
     at::Tensor last_ids // [P]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_sparse_fwd_kernel);
 
-void launch_rasterize_to_pixels_sparse_bwd_kernel(
+void launch_rasterize_to_pixels_sparse_bwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -271,6 +277,7 @@ void launch_rasterize_to_pixels_sparse_bwd_kernel(
     at::Tensor v_colors,                    // [..., N, channels] or [nnz, channels]
     at::Tensor v_opacities                  // [..., N] or [nnz]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_sparse_bwd_kernel);
 
 /////////////////////////////////////////////////
 // rasterize_to_indices_3dgs
@@ -406,7 +413,7 @@ void launch_rasterize_top_contributing_gaussian_ids_sparse_kernel(
 // rasterize_to_pixels_2dgs
 /////////////////////////////////////////////////
 
-void launch_rasterize_to_pixels_2dgs_fwd_kernel(
+void launch_rasterize_to_pixels_2dgs_fwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor ray_transforms,            // [..., N, 3, 3] or [nnz, 3, 3]
@@ -431,7 +438,8 @@ void launch_rasterize_to_pixels_2dgs_fwd_kernel(
     at::Tensor last_ids,       // [..., image_height, image_width]
     at::Tensor median_ids      // [..., image_height, image_width]
 );
-void launch_rasterize_to_pixels_2dgs_bwd_kernel(
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_2dgs_fwd_kernel);
+void launch_rasterize_to_pixels_2dgs_bwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor ray_transforms,            // [..., N, 3, 3] or [nnz, 3, 3]
@@ -468,6 +476,7 @@ void launch_rasterize_to_pixels_2dgs_bwd_kernel(
     at::Tensor v_normals,                   // [..., N, 3] or [nnz, 3]
     at::Tensor v_densify                    // [..., N, 2] or [nnz, 2]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_2dgs_bwd_kernel);
 
 /////////////////////////////////////////////////
 // rasterize_to_indices_2dgs

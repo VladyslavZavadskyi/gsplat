@@ -25,13 +25,15 @@
 
 #    include "Common.h"
 #    include "Dispatch.h"
+#    include "ChannelShards.h"
 #    include "Rasterization.h"
 #    include "RasterizeSparseAddressing.cuh"
 #    include "RasterizeToPixels3DGSDevice.cuh"
 
 namespace gsplat
 {
-using SupportedChannels = dispatch::IntParam<GSPLAT_NUM_CHANNELS>;
+// This translation unit's channel counts (see ChannelShards.h).
+using SupportedChannels = channel_shards::Channels<GSPLAT_CHANNEL_SHARD>;
 
 ////////////////////////////////////////////////////////////////
 // Forward (sparse)
@@ -258,7 +260,7 @@ __global__ void __launch_bounds__(CTA_SIZE) rasterize_to_pixels_sparse_fwd_kerne
     }
 }
 
-void launch_rasterize_to_pixels_sparse_fwd_kernel(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_sparse_fwd_kernel)(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]

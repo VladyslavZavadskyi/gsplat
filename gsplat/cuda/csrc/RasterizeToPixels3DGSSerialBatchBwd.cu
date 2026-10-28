@@ -31,10 +31,12 @@
 #    include "RasterizeToPixels3DGSDevice.cuh"
 #    include "Utils.cuh"
 #    include "Dispatch.h"
+#    include "ChannelShards.h"
 
 namespace gsplat
 {
-using SupportedChannels = dispatch::IntParam<GSPLAT_NUM_CHANNELS>;
+// This translation unit's channel counts (see ChannelShards.h).
+using SupportedChannels = channel_shards::Channels<GSPLAT_CHANNEL_SHARD>;
 
 namespace cg = cooperative_groups;
 
@@ -322,7 +324,7 @@ __global__ void rasterize_to_pixels_3dgs_bwd_kernel(
     }
 }
 
-void launch_rasterize_to_pixels_3dgs_bwd_kernel(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_3dgs_bwd_kernel)(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]
@@ -433,7 +435,7 @@ void launch_rasterize_to_pixels_3dgs_bwd_kernel(
     TORCH_CHECK(dispatched, "dispatch failed: no matching compile-time instantiation for runtime parameters");
 }
 
-void launch_rasterize_to_pixels_3dgs_bwd_kernels(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_3dgs_bwd_kernels)(
     // Gaussian parameters
     const at::Tensor means2d,                   // [..., N, 2] or [nnz, 2]
     const at::Tensor conics,                    // [..., N, 3] or [nnz, 3]

@@ -40,10 +40,12 @@
 #    include "Lidars.cuh"
 #    include "TorchUtils.h"
 #    include "Dispatch.h"
+#    include "ChannelShards.h"
 
 namespace gsplat
 {
-using SupportedChannels = dispatch::IntParam<GSPLAT_NUM_CHANNELS>;
+// This translation unit's channel counts (see ChannelShards.h).
+using SupportedChannels = channel_shards::Channels<GSPLAT_CHANNEL_SHARD>;
 
 namespace cg = cooperative_groups;
 
@@ -85,6 +87,10 @@ constexpr uint32_t cdim_smem_stride()
 // dependency — exposing ample work to the GPU scheduler and eliminating the
 // tail latency on tiles with many Gaussians.
 // ---------------------------------------------------------------------------
+
+// The CSR helpers below are plain (non-template) functions called from
+// Rasterization.cpp: compile them in channel shard 0 only (see ChannelShards.h).
+#    if GSPLAT_CHANNEL_SHARD == 0
 
 // Device kernel that computes per-tile batch counts. This was previously
 // file-scoped to this TU; it is now reachable by the fwd persist path via
@@ -244,6 +250,7 @@ at::Tensor compute_bid_to_slot(
 
     return bid_to_slot;
 }
+#    endif // GSPLAT_CHANNEL_SHARD == 0
 
 // --- Helpers for CSR-packed batch state ---
 //
@@ -951,7 +958,7 @@ __global__ void rasterize_gradient_bwd_kernel(
     }
 }
 
-void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel)(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]

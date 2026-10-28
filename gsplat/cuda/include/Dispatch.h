@@ -378,10 +378,19 @@ namespace detail
     // intermediary deduces IntParam<Values...> and passes Values... explicitly.
     //
     // Returns true if the runtime value matched and dispatch succeeded, false otherwise.
+    // An empty IntParam<> matches nothing (e.g. a channel shard without channels,
+    // see ChannelShards.h), so it returns false without instantiating anything.
     template<typename ResolvedList, int... Values, typename... Remaining>
     bool dispatch_int_param(IntParam<Values...> &param, Remaining &&...remaining)
     {
-        return dispatch_int_helper<ResolvedList, Values...>(param, std::forward<Remaining>(remaining)...);
+        if constexpr(sizeof...(Values) == 0)
+        {
+            return false;
+        }
+        else
+        {
+            return dispatch_int_helper<ResolvedList, Values...>(param, std::forward<Remaining>(remaining)...);
+        }
     }
 
     // =============================================================================

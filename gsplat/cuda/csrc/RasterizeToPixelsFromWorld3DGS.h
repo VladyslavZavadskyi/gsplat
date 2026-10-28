@@ -22,6 +22,7 @@
 
 #include "Cameras.h"
 #include "Common.h"
+#include "ChannelShards.h"
 #include "Lidars.h"
 #include "ExternalDistortion.h"
 
@@ -32,7 +33,7 @@ class Tensor;
 
 namespace gsplat
 {
-void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel(
+void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]
@@ -78,8 +79,9 @@ void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel(
     at::Tensor
         fwd_batch_state // [total_batches, state_dim, pixels_per_tile] fp32, persisted cumulative state for bwd reuse
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel);
 
-void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel(
+void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]
@@ -130,8 +132,9 @@ void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel(
     at::Tensor compose_c_stop,              // [num_tiles, pixels_per_tile] uint16
     at::Tensor priming_state                // [..., C, H, W] int32, temporary ParallelBatch fwd chain
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel);
 
-void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel(
+void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel_shard0(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]
@@ -187,4 +190,5 @@ void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel(
     at::Tensor v_opacities,         // [..., C, N] or [nnz]
     at::optional<at::Tensor> v_rays // [..., C, image_height, image_width, 6]
 );
+GSPLAT_DECLARE_CHANNEL_SHARDS(launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_bwd_kernel);
 } // namespace gsplat

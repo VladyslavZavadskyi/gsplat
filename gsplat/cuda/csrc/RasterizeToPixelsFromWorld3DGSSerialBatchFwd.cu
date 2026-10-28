@@ -36,10 +36,12 @@
 #    include "TorchUtils.h"
 #    include "Utils.cuh"
 #    include "Dispatch.h"
+#    include "ChannelShards.h"
 
 namespace gsplat
 {
-using SupportedChannels       = dispatch::IntParam<GSPLAT_NUM_CHANNELS>;
+// This translation unit's channel counts (see ChannelShards.h).
+using SupportedChannels       = channel_shards::Channels<GSPLAT_CHANNEL_SHARD>;
 using MaskedOutputSafetyModes = dispatch::IntParam<0, 1>;
 
 // CtaSizeForTile (the tile_size -> CTA_SIZE launch-variant mapping) and
@@ -533,7 +535,8 @@ __global__ void
     }
 }
 
-void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_impl(
+// `static`: each channel shard has its own copy (see ChannelShards.h).
+static void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_impl(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]
@@ -749,7 +752,7 @@ void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_impl(
     TORCH_CHECK(dispatched, "dispatch failed: no matching compile-time instantiation for runtime parameters");
 }
 
-void launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_from_world_3dgs_serial_batch_fwd_kernel)(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]

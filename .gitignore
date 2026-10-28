@@ -133,3 +133,4 @@ results
 planning/*.html
 
 scratch/**
+gsplat/cuda/csrc/generated/

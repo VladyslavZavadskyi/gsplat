@@ -40,10 +40,12 @@
 #    include "TorchUtils.h"
 #    include "Utils.cuh"
 #    include "Dispatch.h"
+#    include "ChannelShards.h"
 
 namespace gsplat
 {
-using SupportedChannels                 = dispatch::IntParam<GSPLAT_NUM_CHANNELS>;
+// This translation unit's channel counts (see ChannelShards.h).
+using SupportedChannels                 = channel_shards::Channels<GSPLAT_CHANNEL_SHARD>;
 using DeviceLidarParamsOpt              = cuda::std::optional<RowOffsetStructuredSpinningLidarModelParametersExtDevice>;
 using DeviceExternalDistortionParamsOpt = cuda::std::optional<extdist::BivariateWindshieldModelDeviceParams>;
 
@@ -1489,7 +1491,7 @@ __global__ void
     }
 }
 
-void launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel(
+void GSPLAT_CHANNEL_SHARD_NAME(launch_rasterize_to_pixels_from_world_3dgs_parallel_batch_fwd_kernel)(
     // Gaussian parameters
     const at::Tensor means,                     // [..., N, 3]
     const at::Tensor quats,                     // [..., N, 4]
